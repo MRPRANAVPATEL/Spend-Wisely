@@ -1,5 +1,7 @@
 # Spend-Wisely
 
+**Thoughtfully built by Pranav Patel to solve everyday problems.**
+
 Spend-Wisely is an Android app for keeping track of everyday expenses in rupees. Add purchases as you make them, review your daily and monthly totals, and export a CSV when you need a spreadsheet.
 
 [Download the APK from GitHub Releases](https://github.com/MRPRANAVPATEL/Spend-Wisely/releases/latest)
@@ -13,6 +15,8 @@ Spend-Wisely is an Android app for keeping track of everyday expenses in rupees.
 - **CSV export** lets you save or share a selected month or your full expense history.
 
 ## Install and get started
+
+> Built for personal use and Android development practice. Install it at your own discretion.
 
 1. On the latest release page, find `app-debug.apk` under **Assets**.
 2. Open the APK on a phone running **Android 10 or later** and follow Android’s installation prompts.
@@ -54,3 +58,7 @@ The debug APK is written to `app/build/outputs/apk/debug/app-debug.apk`.
 ## GitHub Actions
 
 [Build APK](https://github.com/MRPRANAVPATEL/Spend-Wisely/actions/workflows/build-apk.yml) runs on each push and can also be started with **Run workflow**. It runs the SMS parser unit tests and builds the debug APK. A successful run uploads the `app-debug-apk` artifact and publishes a numbered GitHub Release with `app-debug.apk` attached.
+
+---
+
+*Thoughtfully built by Pranav Patel to make everyday expense tracking easier.*
