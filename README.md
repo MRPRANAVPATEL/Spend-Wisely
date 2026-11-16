@@ -16,7 +16,7 @@ Spend-Wisely is an Android app for keeping track of everyday expenses in rupees.
 
 ## Install and get started
 
-> Built for personal use and Android development practice. Install it if you’d like to try it.
+> Built for personal use and Android development practice. Install it at your own discretion.
 
 1. On the latest release page, find `app-debug.apk` under **Assets**.
 2. Open the APK on a phone running **Android 10 or later** and follow Android’s installation prompts.
