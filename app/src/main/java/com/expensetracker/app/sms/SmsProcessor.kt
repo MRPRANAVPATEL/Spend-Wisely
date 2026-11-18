@@ -43,9 +43,23 @@ object SmsProcessor {
 
         // Persistent reminder. The full-screen intent opens the popup over the lock screen
         // and shows a heads-up when the overlay permission is missing.
-        NotificationHelper.postPending(appContext, saved, alert = true, fullScreen = true)
-        NotificationHelper.updateSummary(appContext)
-        ReminderScheduler.schedule(appContext, settings.reminderMinutes, replace = false)
+        // Each alert is independent: a notification or scheduler failure must not
+        // prevent the popup after the payment has already been stored.
+        try {
+            NotificationHelper.postPending(appContext, saved, alert = true, fullScreen = true)
+        } catch (e: Exception) {
+            Log.w("ExpenseTracker", "Could not post payment notification", e)
+        }
+        try {
+            NotificationHelper.updateSummary(appContext)
+        } catch (e: Exception) {
+            Log.w("ExpenseTracker", "Could not update pending payment summary", e)
+        }
+        try {
+            ReminderScheduler.schedule(appContext, settings.reminderMinutes, replace = false)
+        } catch (e: Exception) {
+            Log.w("ExpenseTracker", "Could not schedule reminder; trying the popup", e)
+        }
 
         // Instant popup over whatever app is open. Holding "Display over other apps"
         // (SYSTEM_ALERT_WINDOW) exempts the app from background-activity-start limits.

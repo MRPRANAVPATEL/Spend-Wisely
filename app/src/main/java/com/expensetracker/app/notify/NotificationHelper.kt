@@ -1,14 +1,18 @@
 package com.expensetracker.app.notify
 
 import android.annotation.SuppressLint
+import android.Manifest
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
+import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import androidx.core.content.ContextCompat
 import com.expensetracker.app.R
 import com.expensetracker.app.app
 import com.expensetracker.app.data.Expense
@@ -75,8 +79,20 @@ object NotificationHelper {
         )
     }
 
-    private fun canPost(context: Context): Boolean =
-        NotificationManagerCompat.from(context).areNotificationsEnabled()
+    fun canPost(context: Context): Boolean {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) !=
+            PackageManager.PERMISSION_GRANTED
+        ) return false
+        if (!NotificationManagerCompat.from(context).areNotificationsEnabled()) return false
+        val channel = context.getSystemService(NotificationManager::class.java)
+            ?.getNotificationChannel(CHANNEL_ID)
+        return channel == null || channel.importance != NotificationManager.IMPORTANCE_NONE
+    }
+
+    fun canUseFullScreen(context: Context): Boolean =
+        Build.VERSION.SDK_INT < Build.VERSION_CODES.UPSIDE_DOWN_CAKE ||
+            context.getSystemService(NotificationManager::class.java)?.canUseFullScreenIntent() == true
 
     /**
      * Posts (or re-posts) the ongoing notification for one pending expense.
@@ -87,6 +103,7 @@ object NotificationHelper {
      */
     @SuppressLint("MissingPermission")
     fun postPending(context: Context, expense: Expense, alert: Boolean, fullScreen: Boolean) {
+        createChannel(context)
         if (!canPost(context)) return
         val open = popupPendingIntent(context, expense.id)
         val title = Format.money(expense.amount) + " spent - tap to add details"
@@ -118,7 +135,9 @@ object NotificationHelper {
         } else {
             builder.setSilent(true)
         }
-        if (fullScreen) {
+        // Android 14+ may deny full-screen access. Keep the ordinary actionable
+        // notification even when a lock-screen launch is unavailable.
+        if (fullScreen && canUseFullScreen(context)) {
             builder.setFullScreenIntent(open, true)
         }
         try {

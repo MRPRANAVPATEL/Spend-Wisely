@@ -10,8 +10,8 @@ import android.net.Uri
 import android.os.Build
 import android.os.PowerManager
 import android.provider.Settings
-import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
+import com.expensetracker.app.notify.NotificationHelper
 
 data class SetupStatus(
     val sms: Boolean,
@@ -21,16 +21,15 @@ data class SetupStatus(
     val batteryUnrestricted: Boolean
 ) {
     val allGood: Boolean
-        get() = sms && notifications && overlay && fullScreenIntent && batteryUnrestricted
+        get() = sms && notifications && overlay
 }
 
 object SetupChecks {
 
     fun read(context: Context): SetupStatus {
-        val sms = granted(context, Manifest.permission.RECEIVE_SMS) &&
-            granted(context, Manifest.permission.READ_SMS)
+        val sms = granted(context, Manifest.permission.RECEIVE_SMS)
 
-        val notifications = NotificationManagerCompat.from(context).areNotificationsEnabled()
+        val notifications = NotificationHelper.canPost(context)
 
         val overlay = Settings.canDrawOverlays(context)
 
@@ -59,6 +58,17 @@ object SetupChecks {
         val intent = Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
             .putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
         launch(context, intent, Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, packageUri(context)))
+    }
+
+    fun openPaymentNotificationSettings(context: Context) {
+        launch(
+            context,
+            Intent(Settings.ACTION_CHANNEL_NOTIFICATION_SETTINGS)
+                .putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
+                .putExtra(Settings.EXTRA_CHANNEL_ID, NotificationHelper.CHANNEL_ID),
+            Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
+                .putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
+        )
     }
 
     fun openOverlaySettings(context: Context) {

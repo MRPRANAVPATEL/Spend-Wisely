@@ -18,9 +18,16 @@ Spend-Wisely is an Android app for keeping track of everyday expenses in rupees.
 
 > Built for personal use and Android development practice. Install it at your own discretion.
 
-1. On the latest release page, find `app-debug.apk` under **Assets**.
+1. On the latest release page, find `Spend-Wisely-1.2.apk` under **Assets**.
 2. Open the APK on a phone running **Android 10 or later** and follow Android’s installation prompts.
 3. Open **Expense Tracker** from the launcher, enter your name, and tap **Add expense** to record your first purchase.
+4. Open **Settings & setup**, allow **SMS**, **Notifications**, and **Appear on top**, then tap **Test popup**. The test creates a sample ₹499 pending expense, which you can delete afterwards. Real payment detection requires a supported debit SMS from your bank.
+
+### Automatic payment alerts restored in 1.2
+
+The earlier manual-only APK removed the incoming SMS receiver and popup activity. This version restores automatic bank SMS detection and the original payment popup. It requests access to **new incoming SMS only**, without reading the SMS inbox. It also detects when the payment notification channel is disabled and keeps an ordinary actionable notification when Android denies optional full-screen access.
+
+This APK uses the original `com.expensetracker.app` identity. The manual-only rebuild used `com.pranav.spendwisely`, so its existing records stay in that separate app. Keep it installed while you export any records you need. This build does not import that app's CSV records. Do not uninstall any version containing records you need before exporting them.
 
 The APK from GitHub Actions is debug-signed. Android requires a matching signing key for in-place updates. If you need to uninstall an existing copy before switching builds, export a CSV first to keep a copy of your records.
 
@@ -30,9 +37,10 @@ Manual entry is available without SMS access. For automatic detection, open **Se
 
 | Android access | Purpose |
 | --- | --- |
-| SMS | Checks incoming messages for supported debit and UPI alerts. |
+| New incoming SMS | Checks supported debit and UPI alerts as they arrive. Does not read SMS history. |
 | Notifications | Shows prompts and reminders for expenses waiting for details. |
-| Appear on top and full-screen notifications | Lets a prompt appear over another app or on the lock screen when Android allows it. |
+| Appear on top | Lets the payment popup appear over another app when Android allows it. |
+| Full-screen notifications (optional) | Allows a lock-screen prompt when Android grants it. Ordinary notifications work without it. |
 
 Expense records are stored on the phone in a Room database. SMS processing runs on the device. When you choose **Export CSV**, you can save the file through Android’s file picker or share it with another app.
 
@@ -57,7 +65,7 @@ The debug APK is written to `app/build/outputs/apk/debug/app-debug.apk`.
 
 ## GitHub Actions
 
-[Build APK](https://github.com/MRPRANAVPATEL/Spend-Wisely/actions/workflows/build-apk.yml) runs on each push and can also be started with **Run workflow**. It runs the SMS parser unit tests and builds the debug APK. A successful run uploads the `app-debug-apk` artifact and publishes a numbered GitHub Release with `app-debug.apk` attached.
+[Build APK](https://github.com/MRPRANAVPATEL/Spend-Wisely/actions/workflows/build-apk.yml) runs on each push and can also be started with **Run workflow**. It runs the SMS parser unit tests and Android payment alert regression tests, then builds the debug APK. A successful run uploads the `app-debug-apk` artifact and publishes a numbered GitHub Release with `Spend-Wisely-1.2.apk` attached. Tests cover the incoming-SMS receiver and popup registrations, notification permission denial, blocked payment channels, full-screen denial, and notification links to the correct payment. A real bank SMS still needs to be checked on the phone.
 
 ---
 

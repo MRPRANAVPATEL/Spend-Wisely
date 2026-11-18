@@ -145,12 +145,12 @@ fun SettingsScreen(
             SectionCard(title = "Setup checklist") {
                 CheckRow(
                     title = "SMS permission",
-                    detail = "Needed to notice bank debit / UPI messages. Read on this phone only.",
+                    detail = "Detects new bank debit / UPI SMS on this phone. Does not read your SMS inbox.",
                     ok = status.sms,
                     actionLabel = "Allow",
                     onFix = {
                         smsLauncher.launch(
-                            arrayOf(Manifest.permission.RECEIVE_SMS, Manifest.permission.READ_SMS)
+                            arrayOf(Manifest.permission.RECEIVE_SMS)
                         )
                     }
                 )
@@ -160,10 +160,14 @@ fun SettingsScreen(
                     ok = status.notifications,
                     actionLabel = "Allow",
                     onFix = {
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+                            androidx.core.content.ContextCompat.checkSelfPermission(
+                                context, Manifest.permission.POST_NOTIFICATIONS
+                            ) != android.content.pm.PackageManager.PERMISSION_GRANTED
+                        ) {
                             notificationLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
                         } else {
-                            SetupChecks.openNotificationSettings(context)
+                            SetupChecks.openPaymentNotificationSettings(context)
                         }
                     }
                 )
@@ -177,7 +181,7 @@ fun SettingsScreen(
                 CheckRow(
                     title = "Full-screen notifications",
                     detail = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-                        "Lets the popup open over the lock screen (Android 14+)."
+                        "Optional lock-screen prompt. Payment notifications still work without this access."
                     } else {
                         "Granted automatically on this Android version."
                     },
@@ -195,6 +199,9 @@ fun SettingsScreen(
                 Spacer(Modifier.height(4.dp))
                 OutlinedButton(onClick = { SetupChecks.openAppDetails(context) }) {
                     Text("Open app info")
+                }
+                TextButton(onClick = { SetupChecks.openPaymentNotificationSettings(context) }) {
+                    Text("Payment notification sound & pop-up")
                 }
             }
 
@@ -224,8 +231,9 @@ fun SettingsScreen(
             // ---- Test ----------------------------------------------------------------------
             SectionCard(title = "Test") {
                 Text(
-                    text = "Simulates a bank SMS (₹499 via UPI) and runs it through the whole flow: " +
-                        "detection, pending entry, notification and popup.",
+                    text = "Creates a sample ₹499 payment to check parsing, the pending entry, " +
+                        "notification and popup. This does not check receipt of a real SMS. " +
+                        "Delete the sample afterwards if you do not want to keep it.",
                     style = MaterialTheme.typography.bodyMedium
                 )
                 Spacer(Modifier.height(8.dp))
@@ -245,6 +253,13 @@ fun SettingsScreen(
                     }
                 ) { Text("Test popup") }
             }
+
+            Text(
+                text = "Automatic detection starts when your bank sends a supported debit SMS. " +
+                    "A payment without a bank SMS cannot trigger the popup.",
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.padding(horizontal = 4.dp)
+            )
 
             // ---- Reminder interval ---------------------------------------------------------
             SectionCard(title = "Remind me about pending payments every") {
