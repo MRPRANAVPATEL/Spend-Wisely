@@ -4,7 +4,9 @@ import android.Manifest
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.ComponentName
+import android.content.Intent
 import android.provider.Settings
+import android.provider.Telephony
 import com.expensetracker.app.ExpenseApp
 import com.expensetracker.app.data.Expense
 import com.expensetracker.app.sms.SmsReceiver
@@ -35,7 +37,7 @@ class PaymentAlertsTest {
 
     @Before
     fun setup() {
-        context = RuntimeEnvironment.getApplication()
+        context = RuntimeEnvironment.getApplication() as ExpenseApp
         manager = context.getSystemService(NotificationManager::class.java)
         shadowOf(context).grantPermissions(Manifest.permission.POST_NOTIFICATIONS)
         shadowOf(manager).setNotificationsEnabled(true)
@@ -55,6 +57,10 @@ class PaymentAlertsTest {
         val receiver = context.packageManager.getReceiverInfo(ComponentName(context, SmsReceiver::class.java), 0)
         assertTrue(receiver.exported)
         assertEquals(Manifest.permission.BROADCAST_SMS, receiver.permission)
+        val listeners = context.packageManager.queryBroadcastReceivers(
+            Intent(Telephony.Sms.Intents.SMS_RECEIVED_ACTION).setPackage(context.packageName), 0
+        )
+        assertTrue(listeners.any { it.activityInfo.name == SmsReceiver::class.java.name })
         val popup = context.packageManager.getActivityInfo(ComponentName(context, PopupActivity::class.java), 0)
         assertFalse(popup.exported)
         val permissions = context.packageManager.getPackageInfo(
